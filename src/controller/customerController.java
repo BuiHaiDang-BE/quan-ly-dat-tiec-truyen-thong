@@ -2,85 +2,79 @@ package controller;
 
 import model.customer;
 import view.consoleView;
-import  model.fileHandler;
-import  model.customerService;
+import model.fileHandler;
+import model.customerService;
 import model.valid.customerValid;
-import  java.io.IOException;
-import  java.util.ArrayList;
+import java.io.IOException;
+import java.util.ArrayList;
 
 public class customerController {
     private customerService customerService;
     private consoleView view;
 
-    public customerController(customerService CustomerService, consoleView view) {
-        this.customerService = CustomerService;
+    public customerController(customerService customerService, consoleView view) {
+        this.customerService = customerService;
         this.view = view;
     }
-    // 1. Đăng ký khách hàng
-    public void registerCustomer() {
 
+    // 1. registering
+    public void registerCustomer() {
         boolean continueRegistration = true;
         customerValid validator = new customerValid(view, customerService);
 
         while (continueRegistration) {
             try {
-                // 1. Prompt user to input customer details
                 customer c = view.inputCustomerInfo();
 
-                // 2. Validate all inputs
+                // Check valid input
                 if (!validator.validateCustomerInput(c)) {
-                    continue; // If validation fails, ask for input again
+                    continue;
                 }
 
-                // 3. Save the registration record if all inputs are valid
+                // Save if valid
                 customerService.addCustomer(c);
-                view.showMessage("Thêm khách hàng thành công!");
+                view.showMessage("Customer added successfully!");
 
-                // 4. Prompt user to continue or return to main menu
-                continueRegistration = view.askToContinue("đăng Ký ");
+                continueRegistration = view.askToContinue("register");
 
             } catch (Exception e) {
-                view.showMessage("Có lỗi xảy ra: " + e.getMessage());
-                continueRegistration = view.askToContinue("đăng ký ");
+                view.showMessage("An error occurred: " + e.getMessage());
+                continueRegistration = view.askToContinue("register");
             }
         }
     }
 
-
     public void updateCustomer() {
         boolean continueUpdate = true;
-        customerValid validator = new customerValid(view, customerService); // Khởi tạo validator
+        customerValid validator = new customerValid(view, customerService);
 
         while (continueUpdate) {
             try {
-                // 1. Nhập mã khách hàng để tìm
                 String code = view.inputCustomerCode();
 
-                // 2. Kiểm tra xem khách hàng có tồn tại không
                 customer c = customerService.searchByCode(code);
                 if (c == null) {
-                    view.showMessage("Không tìm thấy khách hàng với mã: " + code);
-                    continueUpdate = view.askToContinue("cập nhật");
+                    view.showMessage("Customer not found with code: " + code);
+                    continueUpdate = view.askToContinue("update");
                     continue;
                 }
 
-                // 3. Nhập thông tin cập nhật
                 String newName = view.inputUpdateName(c.getName());
                 if (newName == null || newName.trim().isEmpty()) {
-                    newName = c.getName(); // Giữ nguyên tên cũ
+                    newName = c.getName(); // Keep the old name
                 }
 
                 String newPhone = view.inputUpdatePhone(c.getPhone());
                 if (newPhone == null || newPhone.trim().isEmpty()) {
-                    newPhone = c.getPhone(); // Giữ nguyên số điện thoại cũ
+                    newPhone = c.getPhone(); // Keep the old phone number
                 }
 
                 String newEmail = view.inputUpdateEmail(c.getEmail());
                 if (newEmail == null || newEmail.trim().isEmpty()) {
-                    newEmail = c.getEmail(); // Giữ nguyên email cũ
+                    newEmail = c.getEmail(); // Keep the old email
                 }
 
-                // 4. Validate chỉ các trường được nhập mới
+                // Validate only the newly entered fields
                 customer tempCustomer = new customer();
                 tempCustomer.setCustomer_code(code);
                 tempCustomer.setName(newName);
@@ -92,80 +86,78 @@ public class customerController {
                 boolean isEmailNew = !(newEmail.equals(c.getEmail()) || (newEmail == null && c.getEmail() != null));
 
                 if (!validator.validateCustomerInputForUpdate(tempCustomer, isNameNew, isPhoneNew, isEmailNew)) {
-                    view.showMessage("Thông tin không hợp lệ, vui lòng nhập lại!");
-                    continueUpdate = view.askToContinue("cập nhật ");
+                    view.showMessage("Invalid information, please try again!");
+                    continueUpdate = view.askToContinue("update");
                     continue;
                 }
 
-                // 5. Cập nhật thông tin khách hàng
                 customerService.updateCustomer(code, newName, newPhone, newEmail);
-                view.showMessage("Cập nhật thông tin khách hàng thành công!");
+                view.showMessage("Customer information updated successfully!");
 
-                // 6. Hỏi người dùng có muốn tiếp tục cập nhật không
-                continueUpdate = view.askToContinue("cập nhật ");
+                continueUpdate = view.askToContinue("update");
 
             } catch (Exception e) {
-                view.showMessage("Có lỗi xảy ra: " + e.getMessage());
-                continueUpdate = view.askToContinue("cập nhật ");
+                view.showMessage("An error occurred: " + e.getMessage());
+                continueUpdate = view.askToContinue("update");
             }
         }
     }
 
-    // 3. Tìm kiếm khách hàng theo tên
+    // 3. searching by name
     public void searchCustomerByName() {
         boolean continueSearch = true;
 
         while (continueSearch) {
             try {
-                // Nhập tên hoặc tên một phần để tìm kiếm
-                view.showMessage("--- TÌM KIẾM KHÁCH HÀNG THEO TÊN ---");
+
+                view.showMessage("--- SEARCH CUSTOMER BY NAME ---");
                 String searchName = view.inputSearchName();
 
-                // Kiểm tra input không được để trống
+
                 if (searchName == null || searchName.trim().isEmpty()) {
-                    view.showMessage("Tên tìm kiếm không được để trống!");
-                    continueSearch = view.askToContinue("tìm kiếm ");
+                    view.showMessage("Search name cannot be empty!");
+                    continueSearch = view.askToContinue("search");
                     continue;
                 }
 
-                // Chuẩn hóa tên tìm kiếm (loại bỏ khoảng trắng thừa)
+                // Normalize search name (remove extra whitespace)
                 searchName = searchName.trim();
 
-                view.showMessage("Đang tìm kiếm khách hàng với tên: \"" + searchName + "\"...");
+                view.showMessage("Searching for customer with name: \"" + searchName + "\"...");
 
-                // Thực hiện tìm kiếm
+                // Perform search
                 ArrayList<customer> searchResults = customerService.searchByName(searchName);
 
-                // Xử lý kết quả tìm kiếm
+                // Handle search results
                 if (searchResults == null || searchResults.isEmpty()) {
-                    // Trường hợp không tìm thấy
-                    view.showMessage("Không tìm thấy khách hàng nào phù hợp với tiêu chí tìm kiếm!");
-                } else {
-                    // Trường hợp tìm thấy khách hàng
-                    view.showMessage("Tìm thấy " + searchResults.size() + " khách hàng phù hợp:");
 
-                    // Sắp xếp kết quả theo thứ tự alphabet (theo tên)
+                    view.showMessage("No customers found matching the search criteria!");
+                } else {
+
+                    view.showMessage("Found " + searchResults.size() + " matching customers:");
+
+                    // Sort results alphabetically by name
                     sortCustomersByName(searchResults);
 
-                    // Hiển thị danh sách khách hàng tìm được
+
                     view.displaySearchResults(searchResults, searchName);
 
-                    // Hiển thị thống kê
-                    view.showMessage("Tổng cộng: " + searchResults.size() + " khách hàng được tìm thấy.");
+                    // Show statistics
+                    view.showMessage("Total: " + searchResults.size() + " customers found.");
                 }
 
-                // 4. Hỏi người dùng có muốn tiếp tục tìm kiếm không
-                continueSearch = view.askToContinue("tìm kiếm ");
+                // Ask if user wants to continue searching
+                continueSearch = view.askToContinue("search");
 
             } catch (Exception e) {
-                view.showMessage("Có lỗi xảy ra khi tìm kiếm: " + e.getMessage());
-                view.showMessage("Vui lòng thử lại!");
-                continueSearch = view.askToContinue("tìm kiếm ");
+                view.showMessage("An error occurred during search: " + e.getMessage());
+                view.showMessage("Please try again!");
+                continueSearch = view.askToContinue("search");
             }
         }
     }
 
-    // Helper method: Sắp xếp danh sách khách hàng theo tên (alphabet)
+    // Helper method: Sort customer list by name (alphabet)
     private void sortCustomersByName(ArrayList<customer> customers) {
         customers.sort((c1, c2) -> {
             if (c1.getName() == null && c2.getName() == null) {
@@ -181,24 +173,23 @@ public class customerController {
         });
     }
 
-    //  Hiển thị danh sách khách hàng
+    // Display customer list
     public void displayCustomers() {
         ArrayList<customer> list = customerService.getCustomers();
         if (list.isEmpty()) {
-            view.showMessage("Danh sách khách hàng trống!");
+            view.showMessage("Customer list is empty!");
         } else {
             view.displayCustomerList(list);
         }
     }
 
-    //  Lưu khách hàng xuống file
+    // Save customers to file
     public void saveCustomersToFile(String filename) {
         try {
             fileHandler.saveToFile(filename, customerService.getCustomers());
-            view.showMessage("Lưu dữ liệu khách hàng thành công vào " + filename);
+            view.showMessage("Customer data saved successfully to " + filename);
         } catch (IOException e) {
-            view.showMessage("Lỗi khi lưu dữ liệu: " + e.getMessage());
+            view.showMessage("Error saving data: " + e.getMessage());
         }
     }
-
 }

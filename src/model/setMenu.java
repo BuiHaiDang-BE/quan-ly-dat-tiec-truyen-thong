@@ -4,8 +4,7 @@ public class setMenu {
     private String Code;
     private String Name;
     private double Price;
-    private String Ingredients;// String chứa các món ăn;
-    private int serves; // Số người ăn
+    private String Ingredients;
 
     public setMenu() {
     }
@@ -15,7 +14,7 @@ public class setMenu {
         this.Name = name;
         this.Price = price;
         this.Ingredients = ingredients;
-        this.serves = 1;
+
     }
 
     public String getCode() {
@@ -50,9 +49,6 @@ public class setMenu {
         this.Ingredients = ingredients;
     }
 
-    public int getServes() { return serves; }
-
-    public void setServes(int serves) { this.serves = serves; }
 
     @Override
     public String toString() {
@@ -61,7 +57,6 @@ public class setMenu {
                 ", Name='" + Name + '\'' +
                 ", Price=" + Price +
                 ", Ingredients='" + Ingredients + '\'' +
-                ", serves=" + serves +
                 '}';
     }
 }

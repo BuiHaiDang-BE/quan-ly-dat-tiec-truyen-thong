@@ -229,32 +229,12 @@ public class consoleView {
             return false;
         }
     }
-
-    public boolean askContinueOrdering() {
-        System.out.println("\n=== Options ===");
-        System.out.println("1. Continue ordering");
-        System.out.println("2. Return to main menu");
-        System.out.print("Enter choice: ");
-        try {
-            int choice = Integer.parseInt(sc.nextLine().trim());
-            if (choice == 1) return true;
-            else if (choice == 2) return false;
-            else {
-                System.out.println("Invalid choice! Returning to main menu...");
-                return false;
-            }
-        } catch (NumberFormatException e) {
-            System.out.println("Please enter a number! Returning to main menu...");
-            return false;
-        }
-    }
-
     public void waitForEnter() {
         System.out.println("Press Enter to continue...");
         try {
             System.in.read();
         } catch (IOException e) {
-            // Handle exception silently
+
         }
     }
 

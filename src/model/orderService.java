@@ -31,7 +31,7 @@ public class orderService {
         int counter = 1;
 
         do {
-            orderId = String.format("%03d", counter); // O001, O002, ...
+            orderId = String.format("%03d", counter);
             counter++;
         } while (isOrderIdExists(orderId));
 

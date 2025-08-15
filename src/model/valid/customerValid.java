@@ -18,7 +18,7 @@ public class customerValid {
     }
 
     // ===== customer =====
-    // Validate tất cả các trường (dùng cho đăng ký)
+    // Validate all for(register)
     public boolean validateCustomerInput(customer c) {
         return validateCustomerCode(c.getCustomer_code()) &&
                 validateCustomerName(c.getName()) &&
@@ -26,26 +26,26 @@ public class customerValid {
                 validateEmail(c.getEmail());
     }
 
-    // Validate tùy chọn cho update (KHÔNG kiểm tra uniqueness của customer code)
+    // Validate  update
     public boolean validateCustomerInputForUpdate(customer c, boolean validateName, boolean validatePhone, boolean validateEmail) {
         boolean isValid = true;
 
-        // Chỉ validate format của customer code, không check uniqueness
+
         if (!validateCustomerCodeFormat(c.getCustomer_code())) {
             isValid = false;
         }
 
-        // Validate name nếu yêu cầu
+        // Validate name
         if (validateName && !validateCustomerName(c.getName())) {
             isValid = false;
         }
 
-        // Validate phone nếu yêu cầu
+        // Validate phone
         if (validatePhone && !validatePhoneNumber(c.getPhone())) {
             isValid = false;
         }
 
-        // Validate email nếu yêu cầu
+        // Validate email
         if (validateEmail && !validateEmail(c.getEmail())) {
             isValid = false;
         }
@@ -55,14 +55,14 @@ public class customerValid {
 
     // Validate customer code với uniqueness check (dùng cho đăng ký)
     private boolean validateCustomerCode(String code) {
-        // Kiểm tra format trước
+
         if (!validateCustomerCodeFormat(code)) {
             return false;
         }
 
-        // Kiểm tra tính duy nhất
+
         if (!customerService.isCodeUnique(code)) {
-            view.showMessage("Mã khách hàng đã tồn tại!");
+            view.showMessage("Customer code already exists!");
             return false;
         }
 
@@ -72,19 +72,19 @@ public class customerValid {
     // Validate chỉ format của customer code (không check uniqueness)
     private boolean validateCustomerCodeFormat(String code) {
         if (code == null || code.length() != 5) {
-            view.showMessage("Mã khách hàng phải có đúng 5 ký tự!");
+            view.showMessage("Customer code must be exactly 5 characters!");
             return false;
         }
 
         char firstChar = code.charAt(0);
         if (firstChar != 'C' && firstChar != 'G' && firstChar != 'K') {
-            view.showMessage("Mã khách hàng phải bắt đầu bằng C, G hoặc K!");
+            view.showMessage("Customer code must start with C, G, or K!");
             return false;
         }
 
         String digits = code.substring(1);
         if (!digits.matches("\\d{4}")) {
-            view.showMessage("4 ký tự cuối của mã khách hàng phải là số!");
+            view.showMessage("Last 4 characters of customer code must be digits!");
             return false;
         }
 
@@ -94,13 +94,13 @@ public class customerValid {
     // Validate customer name: Non-empty, 2-25 characters
     private boolean validateCustomerName(String name) {
         if (name == null || name.trim().isEmpty()) {
-            view.showMessage("Tên khách hàng không được để trống!");
+            view.showMessage("Customer name cannot be empty!");
             return false;
         }
 
         String trimmedName = name.trim();
         if (trimmedName.length() < 2 || trimmedName.length() > 25) {
-            view.showMessage("Tên khách hàng phải có từ 2 đến 25 ký tự!");
+            view.showMessage("Customer name must be between 2 and 25 characters!");
             return false;
         }
 
@@ -110,7 +110,7 @@ public class customerValid {
     // Validate phone number: 10 digits, Vietnamese network operator
     private boolean validatePhoneNumber(String phone) {
         if (phone == null || !phone.matches("\\d{10}")) {
-            view.showMessage("Số điện thoại phải có đúng 10 chữ số!");
+            view.showMessage("Phone number must be exactly 10 digits!");
             return false;
         }
 
@@ -131,7 +131,7 @@ public class customerValid {
         }
 
         if (!isValidPrefix) {
-            view.showMessage("Số điện thoại không thuộc nhà mạng Việt Nam!");
+            view.showMessage("Phone number is not from a Vietnamese network operator!");
             return false;
         }
 
@@ -141,13 +141,13 @@ public class customerValid {
     // Validate email format
     private boolean validateEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
-            view.showMessage("Email không được để trống!");
+            view.showMessage("Email cannot be empty!");
             return false;
         }
 
         String emailRegex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
         if (!email.matches(emailRegex)) {
-            view.showMessage("Email không đúng định dạng!");
+            view.showMessage("Email format is invalid!");
             return false;
         }
 
@@ -155,53 +155,30 @@ public class customerValid {
     }
 
     // ===== Order =====
-    public boolean validateOrderInput(String customerCode, String menuCode,
-                                      String eventDate, int numberOfTables) {
-        boolean isValid = true;
 
-        if (customerService.searchByCode(customerCode) == null) {
-            view.showMessage(" Mã khách hàng không tồn tại!");
-            isValid = false;
-        }
-
-        // Validate number of tables
-        if (!validateNumberOfTables(numberOfTables)) {
-            isValid = false;
-        }
-
-        // Validate event date
-        if (!isValidFutureDate(eventDate)) {
-            isValid = false;
-        }
-
-        return isValid;
-    }
     public boolean isValidFutureDate(String eventDate) {
         try {
-
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
             sdf.setLenient(false);
 
             Date inputDate = sdf.parse(eventDate);
             Date currentDate = new Date();
 
-
             return inputDate.after(currentDate);
 
         } catch (ParseException e) {
-            return false; // Format ngày không đúng
+            return false; // Format day wrong
         }
     }
 
     public boolean validateNumberOfTables(int tables) {
         if (tables <= 0) {
-            view.showMessage(" Số bàn phải lớn hơn 0!");
+            view.showMessage(" Number of tables must be greater than 0!");
             return false;
         }
 
-
         if (tables > 50) {
-            view.showMessage(" Số bàn không được vượt quá 50!");
+            view.showMessage(" Number of tables cannot exceed 50!");
             return false;
         }
 

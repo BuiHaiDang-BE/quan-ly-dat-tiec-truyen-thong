@@ -15,6 +15,10 @@ public class orderController {
     private menuController menuController;
     private consoleView view;
 
+
+    public orderController() {
+    }
+
     public orderController(orderService orderService, customerService customerService, menuController menuController, consoleView view) {
         this.orderService = orderService;
         this.customerService = customerService;
@@ -22,32 +26,32 @@ public class orderController {
         this.view = view;
     }
 
-    // Đặt tiệc
+
     public void placeOrder() {
         customerValid validator = new customerValid(view, customerService);
         do {
             String customerCode = view.inputCustomerCode();
             if (customerService.searchByCode(customerCode) == null) {
-                view.showMessage(" Mã khách hàng không tồn tại!");
+                view.showMessage(" Customer code does not exist!");
                 continue;
             }
 
             String menuCode = view.inputMenuCode();
             setMenu menu = menuController.findMenuByCode(menuCode);
             if (menu == null) {
-                view.showMessage(" Mã Set Menu không tồn tại!");
+                view.showMessage(" Set Menu code does not exist!");
                 continue;
             }
 
             int tables = view.inputNumberOfTables();
             if (tables <= 0) {
-                view.showMessage(" Số bàn phải lớn hơn 0!");
+                view.showMessage(" Number of tables must be greater than 0!");
                 continue;
             }
 
             String eventDate = view.inputEventDate();
             if (!validator.isValidFutureDate(eventDate)) {
-                view.showMessage(" Ngày tổ chức phải là ngày trong tương lai!");
+                view.showMessage(" Event date must be in the future!");
                 continue;
             }
 
@@ -61,10 +65,10 @@ public class orderController {
             order order = new order(orderId, customerCode, menuCode, eventDate, tables, totalCost);
             orderService.addOrder(order);
 
-            view.showMessage("Đặt tiệc thành công!");
+            view.showMessage(" Order placed successfully!");
             view.displayOrderInfo(order, customerService.searchByCode(customerCode), menu);
 
-        } while (view.askToContinue("Order "));
+        } while (view.askToContinue("Order"));
     }
 
     public void updateOrder() {
@@ -74,16 +78,16 @@ public class orderController {
             String orderId = view.inputOrderId();
             order existingOrder = orderService.searchByOrderId(orderId);
             if (existingOrder == null) {
-                view.showMessage(" Đơn hàng không tồn tại.");
+                view.showMessage(" Order does not exist.");
                 continue;
             }
 
             if (isEventDatePassed(existingOrder.getEventDate())) {
-                view.showMessage(" Không thể cập nhật đơn hàng đã qua ngày tổ chức!");
+                view.showMessage(" Cannot update an order with a past event date!");
                 continue;
             }
 
-            view.showMessage("\n=== THÔNG TIN ĐƠN HÀNG HIỆN TẠI ===");
+            view.showMessage("\n=== CURRENT ORDER INFORMATION ===");
             customer cust = customerService.searchByCode(existingOrder.getCustomerCode());
             setMenu currentMenu = menuController.findMenuByCode(existingOrder.getSetMenuCode());
             view.displayOrderInfo(existingOrder, cust, currentMenu);
@@ -97,7 +101,7 @@ public class orderController {
             if (!inputMenuCode.trim().isEmpty()) {
                 setMenu newMenu = menuController.findMenuByCode(inputMenuCode.trim());
                 if (newMenu == null || inputMenuCode.length() != 4) {
-                    view.showMessage(" Mã Set Menu không hợp lệ!");
+                    view.showMessage(" Set Menu code is invalid!");
                     continue;
                 }
                 newMenuCode = inputMenuCode.trim();
@@ -116,7 +120,7 @@ public class orderController {
             String inputDate = view.inputEventDateOptional();
             if (!inputDate.trim().isEmpty()) {
                 if (!validator.isValidFutureDate(inputDate.trim())) {
-                    view.showMessage(" Ngày tổ chức phải là ngày trong tương lai!");
+                    view.showMessage(" Event date must be in the future!");
                     continue;
                 }
                 newDate = inputDate.trim();
@@ -124,7 +128,7 @@ public class orderController {
             }
 
             if (updated && orderService.isDuplicateOrderExceptCurrent(orderId, existingOrder.getCustomerCode(), newMenuCode, newDate)) {
-                view.showMessage(" Đơn hàng trùng lặp!");
+                view.showMessage(" Order is duplicated!");
                 continue;
             }
 
@@ -132,41 +136,41 @@ public class orderController {
                 setMenu menuForPrice = menuController.findMenuByCode(newMenuCode);
                 double newTotalCost = menuForPrice != null ? menuForPrice.getPrice() * newTables : existingOrder.getTotalCost();
                 orderService.updateOrder(orderId, newMenuCode, newTables, newDate, newTotalCost);
-                view.showMessage(" Cập nhật đơn hàng thành công!");
+                view.showMessage(" Order updated successfully!");
                 view.displayOrderInfo(orderService.searchByOrderId(orderId), cust, menuForPrice);
             } else {
-                view.showMessage(" Không có thông tin nào được thay đổi.");
+                view.showMessage(" No information has been changed.");
             }
 
-        } while (view.askToContinue("Cập nhật đơn hàng"));
+        } while (view.askToContinue("Update Order"));
     }
 
     private boolean isEventDatePassed(String eventDate) {
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
             Date eventDateObj = sdf.parse(eventDate);
-            Date currentDate = new Date();
+            Date currentDate = new Date(); // 04:21 PM +07, 15/08/2025
             return eventDateObj.before(currentDate);
         } catch (ParseException e) {
             return false;
         }
     }
 
-    // Lưu đơn hàng xuống file
+
     public void saveOrdersToFile(String filename) {
         try {
             fileHandler.saveToFile(filename, orderService.getOrders());
-            view.showMessage(" Dữ liệu đơn hàng đã lưu vào " + filename);
+            view.showMessage(" Order data has been saved to " + filename);
         } catch (Exception e) {
-            view.showMessage(" Lỗi khi lưu đơn hàng: " + e.getMessage());
+            view.showMessage(" Error saving order data: " + e.getMessage());
         }
     }
 
-    // Hiển thị danh sách đơn hàng
+
     public void displayOrders() {
         ArrayList<order> list = orderService.getOrders();
         if (list.isEmpty()) {
-            view.showMessage(" Chưa có đơn hàng nào!");
+            view.showMessage(" No orders available!");
         } else {
             view.displayOrderList(list);
         }
