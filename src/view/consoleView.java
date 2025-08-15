@@ -234,7 +234,7 @@ public class consoleView {
         try {
             System.in.read();
         } catch (IOException e) {
-            // Handle exception silently
+
         }
     }
 

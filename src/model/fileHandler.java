@@ -32,25 +32,25 @@ public class fileHandler {
             boolean isFirstLine = true;
             int lineNumber = 0;
 
-            System.out.println("Đang đọc file CSV: " + filename);
+            System.out.println("Reading CSV file: " + filename);
 
             while ((line = br.readLine()) != null) {
                 lineNumber++;
-                System.out.println("Dòng " + lineNumber + ": " + line);
+                System.out.println("Line " + lineNumber + ": " + line);
 
                 // Bỏ qua header row (dòng đầu tiên)
                 if (isFirstLine) {
                     isFirstLine = false;
                     // Kiểm tra xem có phải header không
                     if (line.toLowerCase().contains("menu") && line.toLowerCase().contains("price")) {
-                        System.out.println("Bỏ qua header row");
+                        System.out.println("Skipping header row");
                         continue; // Skip header
                     }
                 }
 
                 // Bỏ qua dòng trống
                 if (line.trim().isEmpty()) {
-                    System.out.println("Bỏ qua dòng trống");
+                    System.out.println("Skipping empty line");
                     continue;
                 }
 
@@ -69,7 +69,7 @@ public class fileHandler {
                         System.out.println("Attempting to parse price: '" + priceStr + "'");
 
                         if (priceStr.isEmpty() || priceStr.equals("-") || priceStr.equals("null")) {
-                            System.err.println("Cảnh báo: Giá không hợp lệ tại dòng " + lineNumber + ", bỏ qua: " + priceStr);
+                            System.err.println("Warning: Invalid price at line " + lineNumber + ", skipping: " + priceStr);
                             continue;
                         }
 
@@ -80,38 +80,26 @@ public class fileHandler {
                         try {
                             price = Double.parseDouble(priceStr);
                         } catch (NumberFormatException e) {
-                            System.err.println("Lỗi parse giá tại dòng " + lineNumber + ": " + priceStr + " -> " + e.getMessage());
-                            continue; // Bỏ qua dòng này
+                            System.err.println("Error parsing price at line " + lineNumber + ": " + priceStr + " -> " + e.getMessage());
+                            continue;
                         }
 
-                        // Nếu có trường serves (cột thứ 5)
-                        int serves = 1;
-                        if (parts.length >= 5) {
-                            try {
-                                String servesStr = parts[4].trim();
-                                if (!servesStr.isEmpty() && !servesStr.equals("-")) {
-                                    serves = Integer.parseInt(servesStr);
-                                }
-                            } catch (NumberFormatException e) {
-                                serves = 1; // Default value
-                                System.err.println("Cảnh báo: Không thể parse serves, dùng giá trị mặc định 1");
-                            }
-                        }
+
 
                         // Tạo object setMenu
                         setMenu menu = new setMenu(menuId, menuName, price, description);
                         menuList.add(menu);
-                        System.out.println("Đã thêm menu: " + menuId + " - " + menuName + " - " + price);
+                        System.out.println("Added menu: " + menuId + " - " + menuName + " - " + price);
 
                     } else {
-                        System.err.println("Cảnh báo: Dòng " + lineNumber + " không đủ dữ liệu (cần ít nhất 4 cột): " + line);
+                        System.err.println("Warning: Line " + lineNumber + " does not have enough data (needs at least 4 columns): " + line);
                     }
 
                 } catch (NumberFormatException e) {
-                    System.err.println("Lỗi parse số tại dòng " + lineNumber + ": " + e.getMessage());
-                    System.err.println("Nội dung dòng: " + line);
+                    System.err.println("Error parsing number at line " + lineNumber + ": " + e.getMessage());
+                    System.err.println("Line content: " + line);
                 } catch (Exception e) {
-                    System.err.println("Lỗi xử lý dòng " + lineNumber + ": " + e.getMessage());
+                    System.err.println("Error processing line " + lineNumber + ": " + e.getMessage());
                     e.printStackTrace();
                 }
             }
@@ -121,11 +109,9 @@ public class fileHandler {
             }
         }
 
-        System.out.println("Hoàn thành đọc file. Tổng cộng: " + menuList.size() + " menu");
+        System.out.println("Finished reading file. Total: " + menuList.size() + " menus");
         return menuList;
     }
-
-
 
     // Helper method: Parse CSV line đơn giản
     private static String[] parseCSVLine(String line) {
@@ -150,31 +136,5 @@ public class fileHandler {
         return result.toArray(new String[result.size()]);
     }
 
-    // Method để save menu ra CSV - tương thích Java 8
-    public static void saveMenuToCSV(String filename, ArrayList<setMenu> menuList) throws IOException {
-        PrintWriter pw = null;
-        try {
-            // Sử dụng OutputStreamWriter với UTF-8 cho Java 8
-            FileOutputStream fos = new FileOutputStream(filename);
-            OutputStreamWriter osw = new OutputStreamWriter(fos, "UTF-8");
-            pw = new PrintWriter(osw);
 
-            // Write header
-            pw.println("Menu ID,Menu Name,Description,Price,Serves");
-
-            // Write data
-            for (setMenu menu : menuList) {
-                pw.printf("%s,\"%s\",\"%s\",%.2f,1%n",
-                        menu.getCode(),
-                        menu.getName().replace("\"", "\"\""), // Escape quotes
-                        menu.getIngredients().replace("\"", "\"\""), // Escape quotes
-                        menu.getPrice()
-                );
-            }
-        } finally {
-            if (pw != null) {
-                pw.close();
-            }
-        }
-    }
 }
